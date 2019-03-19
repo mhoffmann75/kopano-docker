@@ -28,7 +28,7 @@ export
 # convert lowercase componentname to uppercase
 COMPONENT = $(shell echo $(component) | tr a-z A-Z)
 
-build-all: build-base build-core build-kdav build-konnect build-kwmserver build-ldap-demo build-meet build-playground build-ssl build-utils build-web build-webapp build-zpush
+build-all: build-base build-core build-gabsync build-kdav build-konnect build-kwmserver build-ldap-demo build-meet build-playground build-ssl build-utils build-web build-webapp build-zpush
 
 .PHONY: build
 build: component ?= base
@@ -60,6 +60,9 @@ build-base:
 
 build-core:
 	component=core make build
+
+build-gabsync: build-zpush
+	component=gabsync make build
 
 build-konnect:
 	component=konnect make build-simple
@@ -113,6 +116,11 @@ tag-core:
 	$(shell docker run --rm $(docker_repo)/kopano_core cat /kopano/buildversion | cut -d- -f2))
 	component=core make tag-container
 
+tag-gabsync:
+	$(eval gabsync_version := \
+	$(shell docker run --rm $(docker_repo)/kopano_gabsync cat /kopano/buildversion | tail -n 1 | grep -o -P '(?<=-).*(?=\+)'))
+	component=gabsync make tag-container
+
 tag-konnect:
 	$(eval konnect_version := \
 	$(shell docker run --rm $(docker_repo)/kopano_konnect env | grep CODE_VERSION | cut -d'=' -f2))
@@ -165,6 +173,9 @@ publish-base: build-base tag-base
 
 publish-core: build-core tag-core
 	component=core make publish-container
+
+publish-gabsync: build-zpush build-gabsync tag-gabsync
+	component=gabsync make publish-container
 
 publish-konnect: build-konnect tag-konnect
 	component=konnect make publish-container
